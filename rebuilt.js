@@ -1,11 +1,11 @@
 // first we get elements from html that we actually needed
-
 let task = document.querySelector('.TaskInput');
 let importance = document.querySelector('.ImportanceInput');
 let date = document.querySelector('.DateInput');
 let time = document.querySelector('.TimeInput');
 let place = document.querySelector('.PlaceInput');
 const addButton = document.querySelector('.AddButton');
+const notifyButton = document.querySelector('.NotifyButton');
 
 const search = document.querySelector('.SearchInput');
 const filterRow = document.querySelector('.FilterRow');
@@ -22,7 +22,8 @@ let pendingDeleteId = null; // id of the todo waiting for delete confirmation
 let editingId = null; // id of the todo being edited, null when adding a new one
 
 
-//Lets make a storage
+//------------------------------------------------------------------------------------------------------------------
+
 
 let storage = [];//We store information (can be objects) and this information make UI
 
@@ -49,9 +50,8 @@ function load(){
 //loading data into array(storage) from local storage
  storage = load();
 
-
-
 //Render after every change or render saved todos
+//in parameters we can add filtered arrays to render
 function render(arr){
   container.innerHTML = ''
   arr.forEach(todo => {
@@ -62,6 +62,7 @@ function render(arr){
 render(storage);
 
 
+//------------------------------------------------------------------------------------------------------------------
 
 
 function input(){// make object to use input 
@@ -113,6 +114,40 @@ addButton.addEventListener("click", ()=>{
     createcard(data);
 })
 
+//Notification status
+async function notificationRequest() {
+  console.log('Current permission:', Notification.permission);
+
+  if (Notification.permission === 'default') {
+    const permission = await Notification.requestPermission();
+
+    console.log('Permission:', permission);
+
+    return permission === 'granted';
+  }
+
+  return Notification.permission === 'granted';
+}
+
+async function NotifyStatus() {
+  const granted = await notificationRequest();
+
+  if (granted) {
+    notifyButton.classList.add('Granted');
+  } else {
+    notifyButton.classList.remove('Granted'); 
+  }
+
+  notifyButton.addEventListener('mouseenter', () => {
+    notifyButton.textContent = granted ? 'Enabled' : 'Disabled';
+  });
+  
+  notifyButton.addEventListener('mouseleave', () => {
+    notifyButton.textContent = granted ? 'Notification' : 'Notification';
+  });
+}
+
+NotifyStatus();
 
 function importanceColor(importanceval){
   if(importanceval === "Medium"){
@@ -126,7 +161,7 @@ function importanceColor(importanceval){
   }
 }
 
-
+//Create card
 function createcard(data){
   const card = document.createElement('div');
   card.className = "TodoCard";
@@ -174,7 +209,7 @@ function createcard(data){
 }
 
 
-
+//------------------------------------------------------------------------------------------------------------------
 
 
 //Confirmation to delete
@@ -197,17 +232,15 @@ confirmation.addEventListener("click",(e)=>{
 })
 
 
-
 //Complete or Delete or Edit or share
-//This active listner work to indentify which todo is selected
-//With classlist dont add dot in brackets of function
 container.addEventListener("click", (e)=>{
   const card = e.target.closest('.TodoCard')
   if(!card){
     console.log("No card")
     return
   }
-//we should also have to edit storage not only Ui(the real purpose of id is to connect Ui with storage)  
+//we should also have to edit storage not only Ui(the real purpose of id is to connect Ui with storage)
+//With classlist dont add dot in brackets of function  
   const id = card.dataset.id;
   const todo = storage.find(t => t.id === id);
   const badge = card.querySelector('.PendingBadge, .CompletedBadge');
@@ -294,4 +327,50 @@ filterRow.addEventListener("click", (e)=>{
 })
 
 
-//share button
+//Getting card from id
+function gettingCard(id){
+  return container.querySelector(`.TodoCard[data-id ="${id}"]`)
+}
+
+
+function showNotification (todo){
+  if(Notification.permission !== 'granted') return;
+  const stillExists = storage.find(t => t.id === todo.id);
+  if (!stillExists) return; 
+  const notification = new Notification('Todo Reminder', {
+    body: `Time for: ${todo.taskval}`,
+    //icon:
+    tag: `Todo -${todo.id}`,
+    requireInteraction: true,
+    data:{
+      todoid: todo.id,
+      todoname: todo.taskval
+    }
+  } );
+
+  notification.onclick = (e) => {
+    e.preventDefault();//When you click a notification, the browser has a default behavior — bring the browser window to front and focus the tab. preventDefault() tells the browser: "don't do your default thing, I'll handle it myself."
+    notification.close();
+    const card = gettingCard(data.todoid);
+    // center the element in view
+    card.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center' 
+    })
+    //CSS property names with hyphens are converted to camelCase.
+    card.style.borderColor = 'white';
+    setTimeout(() => {
+      card.style.borderColor = '';
+    }, 3000);
+  };
+
+  notification.onclose = ()=>{
+    console.log('Notification dismissed');
+  }
+
+  return notification;
+}
+
+
+
+

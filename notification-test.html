@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification API Test Lab</title>
+  <style>
+    body { font-family: system-ui; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .panel { border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+    button { padding: 0.75rem 1.5rem; margin: 0.5rem; cursor: pointer; font-size: 1rem; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status { padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0; }
+    .granted { background: #d4edda; color: #155724; }
+    .denied { background: #f8d7da; color: #721c24; }
+    .default { background: #fff3cd; color: #856404; }
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; }
+    input[type="time"], input[type="date"] { padding: 0.5rem; font-size: 1rem; }
+    .log { max-height: 200px; overflow-y: auto; background: #1e1e1e; color: #d4d4d4; padding: 1rem; font-family: monospace; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>🔔 Notification API Test Lab</h1>
+  <p>Experiment with the Notification API before integrating into your Todo app.</p>
+
+  <!-- Panel 1: Permission -->
+  <div class="panel">
+    <h2>1. Permission Status</h2>
+    <div id="permStatus" class="status default">Checking...</div>
+    <button id="btnRequestPerm" onclick="requestPermission()">Request Permission</button>
+    <button id="btnTestBasic" onclick="testBasic()" disabled>Test Basic Notification</button>
+  </div>
+
+  <!-- Panel 2: Basic Notifications -->
+  <div class="panel">
+    <h2>2. Basic Notifications</h2>
+    <button onclick="showBasic()">Simple Notification</button>
+    <button onclick="showWithIcon()">With Icon</button>
+    <button onclick="showWithTag()">With Tag (Replaces)</button>
+    <button onclick="showRequireInteraction()">Require Interaction</button>
+    <button onclick="closeAll()">Close All</button>
+  </div>
+
+  <!-- Panel 3: Advanced Notifications -->
+  <div class="panel">
+    <h2>3. Advanced Features</h2>
+    <button onclick="showWithActions()">With Action Buttons</button>
+    <button onclick="showWithVibrate()">With Vibration (Mobile)</button>
+    <button onclick="showWithData()">With Custom Data</button>
+  </div>
+
+  <!-- Panel 4: Alarm Simulation -->
+  <div class="panel">
+    <h2>4. Alarm Simulation (Like Your Todo App)</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin: 1rem 0;">
+      <label>Date: <input type="date" id="alarmDate"></label>
+      <label>Time: <input type="time" id="alarmTime"></label>
+      <label>Task: <input type="text" id="alarmTask" placeholder="Task name" style="width: 200px;"></label>
+    </div>
+    <button onclick="scheduleTestAlarm()">Schedule Test Alarm (30s check)</button>
+    <button onclick="checkAlarmsNow()">Check Alarms Now</button>
+    <button onclick="clearTestAlarms()">Clear Test Alarms</button>
+    <div id="scheduledAlarms" style="margin-top: 1rem; font-size: 0.9rem; color: #666;"></div>
+  </div>
+
+  <!-- Panel 5: Console Log -->
+  <div class="panel">
+    <h2>5. Event Log</h2>
+    <button onclick="clearLog()">Clear Log</button>
+    <div id="log" class="log"></div>
+  </div>
+
+  <script>
+    // ===== LOGGING =====
+    function log(msg, type = 'info') {
+      const logEl = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      logEl.innerHTML += `<div>[${time}] ${prefix} ${msg}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function clearLog() { document.getElementById('log').innerHTML = ''; }
+
+    // ===== PERMISSION =====
+    function updatePermissionUI() {
+      const status = document.getElementById('permStatus');
+      const btnTest = document.getElementById('btnTestBasic');
+      const perm = Notification.permission;
+      
+      status.textContent = `Permission: ${perm}`;
+      status.className = `status ${perm}`;
+      btnTest.disabled = perm !== 'granted';
+      
+      log(`Permission status: ${perm}`);
+    }
+
+    async function requestPermission() {
+      if (!('Notification' in window)) {
+        log('Notifications not supported in this browser', 'error');
+        return;
+      }
+      
+      if (Notification.permission === 'granted') {
+        log('Already granted');
+        return true;
+      }
+      
+      if (Notification.permission === 'denied') {
+        log('Permission denied - must enable in browser settings', 'error');
+        return false;
+      }
+      
+      log('Requesting permission...');
+      const perm = await Notification.requestPermission();
+      updatePermissionUI();
+      log(`Permission result: ${perm}`, perm === 'granted' ? 'success' : 'error');
+      return perm === 'granted';
+    }
+
+    // ===== BASIC NOTIFICATIONS =====
+    function showBasic() {
+      if (Notification.permission !== 'granted') return;
+      new Notification('Basic Notification', {
+        body: 'This is a simple notification'
+      });
+      log('Shown: Basic notification');
+    }
+
+    function showWithIcon() {
+      if (Notification.permission !== 'granted') return;
+      new Notification('With Icon', {
+        body: 'This has an icon (if available)',
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>'
+      });
+      log('Shown: With icon');
+    }
+
+    function showWithTag() {
+      if (Notification.permission !== 'granted') return;
+      // Same tag = replaces previous
+      new Notification('Tagged Notification', {
+        body: 'Click again to replace this',
+        tag: 'my-tag'
+      });
+      log('Shown: With tag (replaces previous)');
+    }
+
+    function showRequireInteraction() {
+      if (Notification.permission !== 'granted') return;
+      const n = new Notification('Require Interaction', {
+        body: 'Stays open until you click it',
+        requireInteraction: true
+      });
+      n.onclick = () => { log('Notification clicked!'); n.close(); };
+      n.onclose = () => log('Notification closed');
+      log('Shown: Require interaction');
+    }
+
+    function closeAll() {
+      // Can't programmatically close all, but shows the concept
+      log('Note: Use notification.close() on each notification reference');
+    }
+
+    // ===== ADVANCED =====
+    function showWithActions() {
+      if (Notification.permission !== 'granted') return;
+      const n = new Notification('With Actions', {
+        body: 'Click an action button',
+        actions: [
+          { action: 'accept', title: '✅ Accept' },
+          { action: 'decline', title: '❌ Decline' }
+        ],
+        data: { taskId: '123', source: 'test' }
+      });
+      n.onclick = (e) => {
+        const action = e.target.action || 'default';
+        log(`Action clicked: ${action}, Data: ${JSON.stringify(n.data)}`);
+        n.close();
+      };
+      log('Shown: With action buttons');
+    }
+
+    function showWithVibrate() {
+      if (Notification.permission !== 'granted') return;
+      new Notification('Vibration Test', {
+        body: 'Vibrates on mobile (if supported)',
+        vibrate: [200, 100, 200, 100, 200]
+      });
+      log('Shown: With vibration pattern');
+    }
+
+    function showWithData() {
+      if (Notification.permission !== 'granted') return;
+      const n = new Notification('Custom Data', {
+        body: 'Check console for data',
+        data: { 
+          todoId: 'abc-123',
+          url: '/todos/abc-123',
+          timestamp: Date.now()
+        }
+      });
+      n.onclick = () => {
+        log(`Click data: ${JSON.stringify(n.data)}`);
+        n.close();
+      };
+      log('Shown: With custom data');
+    }
+
+    // ===== ALARM SIMULATION =====
+    const testAlarms = [];
+
+    function scheduleTestAlarm() {
+      const date = document.getElementById('alarmDate').value;
+      const time = document.getElementById('alarmTime').value;
+      const task = document.getElementById('alarmTask').value || 'Test Task';
+      
+      if (!date || !time) {
+        log('Please select date and time', 'error');
+        return;
+      }
+      
+      const alarm = { id: Date.now(), date, time, task, triggered: false };
+      testAlarms.push(alarm);
+      updateAlarmsDisplay();
+      log(`Scheduled: ${task} for ${date} ${time}`);
+    }
+
+    function checkAlarmsNow() {
+      const now = new Date();
+      const currentDate = now.toISOString().split('T')[0];
+      const currentTime = now.toTimeString().slice(0, 5);
+      
+      log(`Checking alarms... Now: ${currentDate} ${currentTime}`);
+      
+      testAlarms.forEach(alarm => {
+        if (!alarm.triggered && alarm.date === currentDate && alarm.time === currentTime) {
+          triggerTestAlarm(alarm);
+        }
+      });
+    }
+
+    function triggerTestAlarm(alarm) {
+      alarm.triggered = true;
+      updateAlarmsDisplay();
+      
+      if (Notification.permission === 'granted') {
+        const n = new Notification('⏰ Alarm!', {
+          body: alarm.task,
+          tag: `alarm-${alarm.id}`,
+          requireInteraction: true,
+          data: alarm
+        });
+        n.onclick = () => { log(`Alarm clicked: ${alarm.task}`); n.close(); };
+        setTimeout(() => n.close(), 30000);
+      }
+      log(`🚨 ALARM TRIGGERED: ${alarm.task}`, 'success');
+    }
+
+    function clearTestAlarms() {
+      testAlarms.length = 0;
+      updateAlarmsDisplay();
+      log('Cleared all test alarms');
+    }
+
+    function updateAlarmsDisplay() {
+      const el = document.getElementById('scheduledAlarms');
+      if (testAlarms.length === 0) {
+        el.innerHTML = 'No alarms scheduled';
+        return;
+      }
+      el.innerHTML = testAlarms.map(a => 
+        `<div>${a.task} — ${a.date} ${a.time} ${a.triggered ? '✅' : '⏳'}</div>`
+      ).join('');
+    }
+
+    // ===== INIT =====
+    updatePermissionUI();
+    
+    // Auto-check every 30 seconds (like real app)
+    setInterval(checkAlarmsNow, 30000);
+    log('Auto-check started (every 30s)');
+  </script>
+</body>
+</html>

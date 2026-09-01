@@ -400,6 +400,37 @@ p {
   opacity: 1;
 }
 
+.NotifyButton{
+  width: 116px;
+  height: 46px;
+  border-color: #f87171;
+  color: #f87171;
+  padding-bottom: 14px;
+
+}
+
+.NotifyButton:hover{
+  background-color: #f87171;
+  color: #18181b;
+  padding-bottom: 14px;
+}
+
+
+.Granted{
+  border-color: #86efac;
+  color: #86efac;
+  padding-bottom: 14px;
+  
+}
+
+.Granted:hover{
+  background-color: #86efac;
+  color: #18181b;
+  padding-bottom: 14px;
+
+}
+
+
 /* ========== Modal ========== */
 
 /* hidden attribute normally means display:none, but our display:flex
