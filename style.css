@@ -546,3 +546,63 @@ footer {
     width: 100%;
   }
 }
+
+/* ========== SEO Content & FAQ Sections ========== */
+
+.InfoSection,
+.FaqSection {
+  margin-top: 48px;
+}
+
+.InfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.InfoCard {
+  background-color: #27272a;
+  border: 2px solid #3f3f46;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.InfoCard h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.InfoCard p {
+  color: #a1a1aa;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.FaqContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.FaqItem {
+  background-color: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.FaqQuestion {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  outline: none;
+}
+
+.FaqAnswer {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #a1a1aa;
+  line-height: 1.5;
+}
