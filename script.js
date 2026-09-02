@@ -129,11 +129,32 @@ async function notificationRequest() {
   return Notification.permission === 'granted';
 }
 
+function alarmCheck (){
+  setInterval(() => {
+    if(Notification.permission !== 'granted')return;
+
+    const now = new Date();
+    //2026-09-02T14:30:00.000Z  ISO formate
+    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    // 14:30:00 GMT+0500 (Pakistan Standard Time) ISO formate
+    const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+
+    storage.forEach(t => {
+      if(t.badge === 'Pending'&&t.dateval === currentDate&&t.timeval === currentTime){
+        showNotification(t)
+      }
+
+    })
+
+  }, 30000);
+}
+
 async function NotifyStatus() {
   const granted = await notificationRequest();
 
   if (granted) {
     notifyButton.classList.add('Granted');
+    alarmCheck();
   } else {
     notifyButton.classList.remove('Granted'); 
   }
@@ -197,8 +218,8 @@ function createcard(data){
               <button class="Button EditButton" type="button">Edit</button>
               <button class="Button ShareButton" type="button">
                 <span class="ShareIcon">
-                  <img src="Logo.svg" alt="" class="IconDefault">
-                  <img src="Logo (1).svg" alt="" class="IconHover">
+                  <img src="assets/WhatsappLogo.svg" alt="Share on WhatsApp" class="IconDefault">
+                  <img src="assets/WhatsappBlackLogo.svg" alt="Share on WhatsApp" class="IconHover">
                 </span>
               </button>
 
@@ -351,7 +372,8 @@ function showNotification (todo){
   notification.onclick = (e) => {
     e.preventDefault();//When you click a notification, the browser has a default behavior — bring the browser window to front and focus the tab. preventDefault() tells the browser: "don't do your default thing, I'll handle it myself."
     notification.close();
-    const card = gettingCard(data.todoid);
+    const card = gettingCard(todo.id);
+    if(!card){return;}
     // center the element in view
     card.scrollIntoView({
       behavior: 'smooth',

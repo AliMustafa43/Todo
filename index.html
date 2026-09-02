@@ -3,12 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Todo List</title>
-  <link rel="stylesheet" href="todo.css">
+
+  <!-- Primary SEO Meta Tags -->
+  <title>TaskFlow - Simple & Fast Daily Task Manager</title>
+  <meta name="description" content="TaskFlow helps you organize daily tasks, track priorities, set alarms, and boost your daily productivity easily.">
+  <meta name="robots" content="index, follow"> <!-- tells search engines to index and follow links on this page -->
+  <meta name="theme-color" content="#18181b"> <!-- matches mobile browser toolbar color with page background -->
+
+  <!-- Canonical URL to tell search engines the official address of this page -->
+  <link rel="canonical" href="./">
+
+  <!-- Favicon: shows your PNG logo on the browser tab -->
+  <link rel="icon" type="image/png" href="assets/Logo.png">
+
+  <!-- Open Graph / Facebook / WhatsApp (Generates rich card preview when sharing link) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TaskFlow">
+  <meta property="og:title" content="TaskFlow - Simple & Fast Daily Task Manager">
+  <meta property="og:description" content="Organize daily tasks, track priorities, set alarms, and boost your daily productivity easily with TaskFlow.">
+  <meta property="og:image" content="assets/Logo.png">
+
+  <!-- Twitter Card (Generates interactive preview card on X / Twitter) -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="TaskFlow - Simple & Fast Daily Task Manager">
+  <meta name="twitter:description" content="Organize daily tasks, track priorities, set alarms, and boost your daily productivity easily with TaskFlow.">
+  <meta name="twitter:image" content="assets/Logo.png">
+
+  <!-- JSON-LD Structured Data: Tells Google search crawlers this is a Productivity Web Application -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "TaskFlow",
+    "applicationCategory": "Productivity",
+    "operatingSystem": "All",
+    "description": "A fast and simple daily task management web app to organize tasks, set priorities, and get reminders."
+  }
+  </script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="Header">
-    <h1>My Todo List</h1>
+    <h1>TaskFlow</h1>
     <p class="HeaderText">Organize your daily tasks and stay productive.</p>
   </header>
 
@@ -20,12 +57,12 @@
         <div class="FormInfo">
           <div class="InputRow">
             <div class="FieldGroup">
-              <label class="FieldLabel">Task</label>
-              <textarea class="FieldControl TaskInput" placeholder="Enter task" rows="4"></textarea>
+              <label class="FieldLabel" for="task-input">Task</label>
+              <textarea id="task-input" name="task" class="FieldControl TaskInput" placeholder="Enter task" rows="4"></textarea>
             </div>
             <div class="FieldGroup">
-              <label class="FieldLabel">Importance</label>
-              <select class="FieldControl ImportanceInput">
+              <label class="FieldLabel" for="importance-input">Importance</label>
+              <select id="importance-input" name="importance" class="FieldControl ImportanceInput">
                 <option value="">Select importance</option>
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -36,18 +73,18 @@
 
           <div class="InputRow">
             <div class="FieldGroup">
-              <label class="FieldLabel">Date</label>
-              <input class="FieldControl DateInput" type="date">
+              <label class="FieldLabel" for="date-input">Date</label>
+              <input id="date-input" name="date" class="FieldControl DateInput" type="date">
             </div>
             <div class="FieldGroup">
-              <label class="FieldLabel">Time</label>
-              <input class="FieldControl TimeInput" type="time">
+              <label class="FieldLabel" for="time-input">Time</label>
+              <input id="time-input" name="time" class="FieldControl TimeInput" type="time">
             </div>
           </div>
 
           <div class="FieldGroup">
-            <label class="FieldLabel">Place</label>
-            <input class="FieldControl PlaceInput" type="text" placeholder="Enter place">
+            <label class="FieldLabel" for="place-input">Place</label>
+            <input id="place-input" name="place" class="FieldControl PlaceInput" type="text" placeholder="Enter place">
           </div>
 
           <div class="Buttons FormButtons">
@@ -67,7 +104,7 @@
     <section class="TasksSection">
       <div class="TasksTop">
         <h2 class="SectionTitle">My Tasks</h2>
-        <input class="SearchInput" type="search" placeholder="Search task...">
+        <input id="search-input" name="search" class="SearchInput" type="search" placeholder="Search task..." aria-label="Search tasks">
       </div>
 
       <div class="FilterRow">
@@ -186,7 +223,7 @@
 
   <footer>
     <p class="FooterText">
-      © 2026 My Todo List. All rights reserved.
+      © 2026 TaskFlow. All rights reserved.
     </p>
   </footer>
 
@@ -202,5 +239,5 @@
     </div>
   </div>
 </body>
-<script src="rebuilt.js"></script>
+<script src="script.js"></script>
 </html>
