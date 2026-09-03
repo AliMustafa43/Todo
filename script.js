@@ -49,13 +49,23 @@ function load(){
 //loading data into array(storage) from local storage
  storage = load();
 
+// Sort by earliest date and time (chronological order)
+function sortByEarliest(arr) {
+  return [...arr].sort((a, b) => {
+    const timeA = `${a.dateval} ${a.timeval}`;
+    const timeB = `${b.dateval} ${b.timeval}`;
+    return timeA > timeB ? 1 : -1;
+  });
+}
+
 //Render after every change or render saved todos
 //in parameters we can add filtered arrays to render
 function render(arr){
-  container.innerHTML = ''
-  arr.forEach(todo => {
-  createcard(todo);
-});
+  container.innerHTML = '';
+  const sorted = sortByEarliest(arr);
+  sorted.forEach(todo => {
+    createcard(todo);
+  });
 }
 
 render(storage);
@@ -368,14 +378,14 @@ function gettingCard(id){
   return container.querySelector(`.TodoCard[data-id ="${id}"]`)
 }
 
-
+//Show Notification
 function showNotification (todo){
   if(Notification.permission !== 'granted') return;
   const stillExists = storage.find(t => t.id === todo.id);
   if (!stillExists) return; 
   const notification = new Notification('Todo Reminder', {
     body: `Time for: ${todo.taskval}`,
-    //icon:
+    icon: 'assets/Alert.png',
     tag: `Todo -${todo.id}`,
     requireInteraction: true,
     data:{
