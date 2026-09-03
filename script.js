@@ -1,4 +1,4 @@
-// first we get elements from html that we actually needed
+// First we get elements from HTML that we actually need
 let task = document.querySelector('.TaskInput');
 let importance = document.querySelector('.ImportanceInput');
 let date = document.querySelector('.DateInput');
@@ -10,14 +10,13 @@ const notifyButton = document.querySelector('.NotifyButton');
 const search = document.querySelector('.SearchInput');
 const filterRow = document.querySelector('.FilterRow');
 
-const card = document.querySelector('.TodoCard');
 const container = document.querySelector('.CardContainer')
 
 const confirmation = document.querySelector('.ModalOverlay');
 const modalCancel = document.querySelector('.ModalCancelButton');
 const modalDelete = document.querySelector('.ModalDeleteButton');
 
-//the major purpose of them is to enable and disable feature
+// The major purpose of these is to enable and disable features
 let pendingDeleteId = null; // id of the todo waiting for delete confirmation
 let editingId = null; // id of the todo being edited, null when adding a new one
 
@@ -25,7 +24,7 @@ let editingId = null; // id of the todo being edited, null when adding a new one
 //------------------------------------------------------------------------------------------------------------------
 
 
-let storage = [];//We store information (can be objects) and this information make UI
+let storage = []; // We store information (can be objects) and this information makes the UI
 
 function save(){
   try{
@@ -93,10 +92,10 @@ function input(){// make object to use input
 
 //Add todo and Update todo
 addButton.addEventListener("click", ()=>{
-    const data = input();//data getting from the form
+    const data = input(); // Get data from the form
     if(!data){return;}
     if (editingId){
-      data.id = editingId; //As it got random Id, it gives same id of todo that we want to edit
+      data.id = editingId; // Keep existing ID of the todo being edited instead of a new one
       const todo = storage.find(t => t.id === editingId);
       Object.assign(todo, data); //Shortest way to edit the existing todo
       save();
@@ -136,10 +135,13 @@ function alarmCheck (){
     if(Notification.permission !== 'granted')return;
 
     const now = new Date();
-    //2026-09-02T14:30:00.000Z  ISO formate
-    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    // 14:30:00 GMT+0500 (Pakistan Standard Time) ISO formate
-    const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+    // Format local date as YYYY-MM-DD so it matches input type="date" in any timezone
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // padStart pads string with '0' to ensure 2 digits
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    // HH:MM local time from time string
+    const currentTime = now.toTimeString().slice(0, 5);
 
 
     storage.forEach(t => {
@@ -159,21 +161,30 @@ function alarmCheck (){
 }
 
 async function NotifyStatus() {
-  const granted = await notificationRequest();
+  const updateButtonUI = (granted) => {
+    if (granted) {
+      notifyButton.classList.add('Granted');
+      alarmCheck();
+    } else {
+      notifyButton.classList.remove('Granted');
+    }
+  };
 
-  if (granted) {
-    notifyButton.classList.add('Granted');
-    alarmCheck();
-  } else {
-    notifyButton.classList.remove('Granted'); 
-  }
+  // Check initial permission
+  updateButtonUI(Notification.permission === 'granted');
+
+  // Request permission when user clicks the notification button
+  notifyButton.addEventListener('click', async () => {
+    const granted = await notificationRequest();
+    updateButtonUI(granted);
+  });
 
   notifyButton.addEventListener('mouseenter', () => {
-    notifyButton.textContent = granted ? 'Enabled' : 'Disabled';
+    notifyButton.textContent = Notification.permission === 'granted' ? 'Enabled' : 'Disabled';
   });
   
   notifyButton.addEventListener('mouseleave', () => {
-    notifyButton.textContent = granted ? 'Notification' : 'Notification';
+    notifyButton.textContent = 'Notification';
   });
 }
 
@@ -242,35 +253,32 @@ function createcard(data){
 //------------------------------------------------------------------------------------------------------------------
 
 
-//Confirmation to delete
-confirmation.addEventListener("click",(e)=>{
+// Confirmation to delete
+confirmation.addEventListener("click", (e) => {
   if(e.target.closest('.ModalDeleteButton')){
     if (pendingDeleteId) {
-    storage = storage.filter(t => t.id !== pendingDeleteId);
-    confirmation.hidden = true;
-    pendingDeleteId = null;
-    save();
-    render(storage);
+      storage = storage.filter(t => t.id !== pendingDeleteId);
+      confirmation.hidden = true;
+      pendingDeleteId = null;
+      save();
+      render(storage);
     }
-  } else if(e.target.closest('.ModalCancelButton')){
+  } else if(e.target.closest('.ModalCancelButton') || e.target === confirmation){
     confirmation.hidden = true;
     pendingDeleteId = null;
   }
-  else
-    confirmation.hidden = true;
-    pendingDeleteId = null;
-})
+});
 
 
-//Complete or Delete or Edit or share
+// Complete or Delete or Edit or share
 container.addEventListener("click", (e)=>{
   const card = e.target.closest('.TodoCard')
   if(!card){
     console.log("No card")
     return
   }
-//we should also have to edit storage not only Ui(the real purpose of id is to connect Ui with storage)
-//With classlist dont add dot in brackets of function  
+// We also have to edit storage, not only UI (the real purpose of id is to connect UI with storage)
+// With classList don't add dot in brackets of method  
   const id = card.dataset.id;
   const todo = storage.find(t => t.id === id);
   const badge = card.querySelector('.PendingBadge, .CompletedBadge');
@@ -327,34 +335,32 @@ search.addEventListener("input", ()=>{
 })
 
 
-//filter buttons
+// Filter buttons
 filterRow.addEventListener("click", (e)=>{
-  console.log('Iam clicked')
-  const all = e.target.closest('.All')
+  const btn = e.target.closest('.FilterButton');
+  if(!btn) return;
+
+  filterRow.querySelectorAll('.FilterButton').forEach(b => b.classList.remove('Active'));
+  btn.classList.add('Active');
+
+  const all = e.target.closest('.All');
   const high = e.target.closest('.High');
   const medium = e.target.closest('.Medium');
   const low = e.target.closest('.Low');
+
   if(all){
-    render(storage)
-  
+    render(storage);
+  } else if(high){
+    const filtered = storage.filter(todo => todo.importanceval.includes("High"));
+    render(filtered);
+  } else if(medium){
+    const filtered = storage.filter(todo => todo.importanceval.includes("Medium"));
+    render(filtered);
+  } else if(low){
+    const filtered = storage.filter(todo => todo.importanceval.includes("Low"));
+    render(filtered);
   }
-  if(high){
-    const filtered = storage.filter(todo => todo.importanceval.includes("High"))
-  
-
-    render(filtered)
-  }
-  else if(medium){
-    const filtered = storage.filter(todo => todo.importanceval.includes("Medium"))
-    render(filtered)
-
-  }
-  else if(low){
-    const filtered = storage.filter(todo => todo.importanceval.includes("Low"))
-    render(filtered)
-
-  }
-})
+});
 
 
 //Getting card from id
