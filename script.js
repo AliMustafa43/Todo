@@ -72,6 +72,7 @@ function input(){// make object to use input
     const timeval = time.value;
     const placeval = place.value;
     const badge = "Pending"
+    const notified = undefined
 
     if(!taskval||!importanceval||!dateval){
       alert("Fill these sections task, importance, date")
@@ -85,7 +86,8 @@ function input(){// make object to use input
     dateval,
     timeval,
     placeval,
-    badge
+    badge,
+    notified
   }
 }
 
@@ -139,12 +141,19 @@ function alarmCheck (){
     // 14:30:00 GMT+0500 (Pakistan Standard Time) ISO formate
     const currentTime = now.toTimeString().slice(0, 5); // HH:MM
 
-    storage.forEach(t => {
-      if(t.badge === 'Pending'&&t.dateval === currentDate&&t.timeval === currentTime){
-        showNotification(t)
-      }
 
-    })
+    storage.forEach(t => {
+      if(t.badge === 'Pending' && t.dateval === currentDate && t.timeval === currentTime){
+      // Only notify once per (date + time) combination
+      const key = currentDate + currentTime;   
+      if (t.notified !== key) {         
+      t.notified = key;        
+      save();
+      showNotification(t);
+    }
+  }
+})
+
 
   }, 30000);
 }
@@ -372,18 +381,29 @@ function showNotification (todo){
   notification.onclick = (e) => {
     e.preventDefault();//When you click a notification, the browser has a default behavior — bring the browser window to front and focus the tab. preventDefault() tells the browser: "don't do your default thing, I'll handle it myself."
     notification.close();
-    const card = gettingCard(todo.id);
-    if(!card){return;}
-    // center the element in view
-    card.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center' 
-    })
-    //CSS property names with hyphens are converted to camelCase.
-    card.style.borderColor = 'white';
-    setTimeout(() => {
-      card.style.borderColor = '';
-    }, 3000);
+    //Bring the TaskChime tab/window to front
+    window.focus();
+
+    //Wait for the window to become active before trying to scroll
+    const attemptHighlight = () => {
+      if (document.hasFocus()) {
+        const card = gettingCard(todo.id);
+        if (!card) { return; }
+        card.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+        card.style.borderColor = 'white';
+        setTimeout(() => {
+          card.style.borderColor = '';
+        }, 3000);
+      } else {
+      // Tab not yet focused — retry shortly
+      setTimeout(attemptHighlight, 300);
+      }
+    };
+
+    attemptHighlight();
   };
 
   notification.onclose = ()=>{
